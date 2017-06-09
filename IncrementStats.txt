@@ -1,0 +1,139 @@
+Incremental Statistics:
+
+When incremental statistics maintenance is enabled for a partitioned table, oracle accurately generated global level  statistics by aggregating partition level statistics. 
+It is assumed that statistics would only be gathered on partitions that had stale statistics (10% of the rows in the partition had changed). However, what they actually saw when they did a DBMS_STATS.GATHER_TABLE_STATS was all of the partitions that had been affected by the DML had statistics re-gathered on them. This is the expected behavior, incremental statistics maintenance is suppose to yield the same statistics as gathering table statistics from scratch, just faster. This means incremental statistics maintenance needs to gather statistics on any partition that will change the global or table level statistics. For instance, the min or max value for a column could change after just one row is inserted or updated in the table. It might easier to demonstrate this using an example.
+
+Oracle does this by tracking the number of DML row insert, update and delete operations for tables, partitions and sub-partitions. Once the number of DML operations exceeds a certain threshold the statistics status for the table, partition or sub-partition is changed to stale.
+ 
+Note: that the incremental maintenance feature was introduced in Oracle Database 11g Release 1. However, we also provide a solution in Oracle Database10g Release 2 (10.2.0.4) that simulates the same behavior. The 10g solution is a new value, 'APPROX_GLOBAL AND PARTITION' for the GRANULARITY parameter of the GATHER_TABLE_STATS procedures. It behaves the same as the incremental maintenance feature except that we don't update the NDV for non-partitioning columns and number of distinct keys of the index at the global level. For partitioned column we update the NDV as the sum of NDV at the partition levels. Also we set the NDV of columns of unique indexes as the number of rows of the table. In general, non-partitioning column NDV at the global level becomes stale less often. It may be possible to collect global statistics less frequently then the default (when table changes 10%) since approx_global option maintains most of the global statistics accurately.
+
+By default, incremental maintenance does not use the staleness status to decide when to update statistics. This scenario is covered in an earlier blog post for Oracle Database 11g. If a partition or sub-partition is subject to even a single DML operation, statistics will be re-gathered, the appropriate synopsis will be updated and the global-level statistics will be re-calculated from the synopses. This behavior can be changed in Oracle Database 12c, allowing you to use the staleness threshold to define when incremental statistics will be re-calculated. This is covered in Staleness and DML thresholds, below.
+
+
+Series
+https://blogs.oracle.com/optimizer/entry/incremental_statistics_maintenance_what_statistics
+https://blogs.oracle.com/optimizer/incremental-statistics-maintenance-what-statistics-will-be-gathered-after-dml-occurs-on-the-table
+https://blogs.oracle.com/optimizer/efficient-statistics-maintenance-for-partitioned-tables-using-incremental-statistics-part-1
+
+
+Staleness and DML thresholds
+++++++++++++++++++++++++++++
+
+EXEC dbms_stats.set_table_prefs('&Owner','&Tablename', 'STALE_PERCENT','5')
+
+select dbms_stats.get_prefs('STALE_PERCENT','&Owner','&Tablename') from dual;
+
+
+select partition_name,
+       subpartition_name,
+       stale_stats               /* YES or NO */
+from   dba_tab_statistics
+where  table_name = '&Tablename';
+
+
+EXEC dbms_stats.flush_database_monitoring_info
+                
+select  * from    dba_tab_modifications where   table_name = '&Tablename';
+
+
+Remember that if you are using incremental statistics in Oracle Database 11g, a single DML operation on a partition or sub-partition will make it a target for a statistics refresh  - even if it is not marked stale. In other words, we might update one row in a partition containing 1 million rows. The partition won't be marked state (if we assume a 10% staleness threshold) but fresh statistics will be gathered. Oracle Database 12c exhibits the same behavior by default, but this release gives you the option to allow multiple DML changes to occur against a partition or sub-partition before it is a target for incremental refresh. You can enable this behavior by changing the DBMS_STATS preference INCREMENTAL_STALENESS from its default value (NULL) to 'USE_STALE_PERCENT'. For example:
+
+exec dbms_stats.set_global_prefs('INCREMENTAL_STALENESS', 'USE_STALE_PERCENT')
+
+
++++++++++++++++++++++++
+How to collect incremental stats 
+
+ --Check that the preference was set correctly
+SELECT dbms_stats.get_prefs('INCREMENTAL','&Owner','&Tablename') FROM   dual;
+
+
+-- Enable incremental statistics   / Enabling synopses
+BEGIN
+ dbms_stats.set_table_prefs('&Owner','&Tablename','INCREMENTAL','TRUE');
+END;
+/
+ 
+ --Check that the preference was set correctly
+SELECT dbms_stats.get_prefs('INCREMENTAL','&Owner','&Tablename') FROM   dual;
+
+-- Gather statistics on the table
+BEGIN
+ dbms_stats.gather_table_stats('&Owner','&Tablename');
+END;
+/
+
+
++++++++++++++++++++++++++++++++++++
+
+-- Check the last_analyzed date for the ORDERS2 table and its partitions
+SELECT table_name, to_char(last_analyzed, 'DD-MON-YYYY, HH24:MI:SS')  last_analyze`
+FROM   dba_tables
+WHERE   owner='&Owner' and table_name='&Tablename';
+
+SELECT   partition_name,  to_char(last_analyzed, 'DD-MON-YYYY, HH24:MI:SS') last_analyze
+FROM     dba_tab_partitions
+WHERE   owner='&Owner' and table_name='&Tablename'
+ORDER BY partition_position;
+
+-- Check the actual column stats
+SELECT column_name, num_distinct, num_nulls
+FROM   dba_tab_col_statistics
+WHERE   owner='&Owner' and table_name='&Tablename'
+;
+
+-- Check we actually did do an incremental stats gather
+
+SELECT o.name, decode(bitand(h.spare2, 8), 8, 'yes', 'no') incremental
+FROM   sys.hist_head$ h, sys.obj$ o
+WHERE  h.obj# = o.obj#
+AND    o.name = '&Tablename'
+AND    o.subname is null;
+
+
+SELECT dbms_stats.get_prefs('METHOD_OPT','&Owner','&Tablename') FROM   dual;
+SELECT dbms_stats.get_prefs('INCREMENTAL','&Owner','&Tablename') FROM   dual;
+SELECT dbms_stats.get_prefs('INCREMENTAL_STALENESS','&Owner','&Tablename') FROM   dual;
+SELECT dbms_stats.get_prefs('APPROXIMATE_NDV_ALGORITHM','&Owner','&Tablename') FROM   dual;
+SELECT dbms_stats.get_prefs('STALE_PERCENT','&Owner','&Tablename') FROM   dual;
+
+
+exec dbms_stats.set_table_prefs(ownname=>'&Owner',tabname=>'&Tablename',pname =>'METHOD_OPT', pvalue=>'FOR ALL COLUMNS SIZE 1 FOR COLUMNS SIZE 254 col1 col2');  -- VALUES( 'FOR ALL COLUMNS SIZE AUTO'
+exec dbms_stats.set_table_prefs('&Owner','&Tablename','INCREMENTAL','TRUE');   -- FALSE
+exec dbms_stats.set_table_prefs('&Owner','&Tablename','INCREMENTAL_STALENESS',NULL);   -- VALUES( NULL or  'USE_STALE_PERCENT, USE_LOCKED_STATS'  or  'USE_STALE_PERCENT' or 'ALLOW_MIXED_FORMAT' or NULL  <- default value (without quotes) ) 
+exec dbms_stats.set_table_prefs(ownname=>'&Owner',tabname=>'&Tablename',pname =>'INCREMENTAL_STALENESS',  pvalue=>'USE_STALE_PERCENT, USE_LOCKED_STATS'); -- for use stale creteria + work on lock stats
+ 
+exec  dbms_stats.set_table_prefs('&Owner','&Tablename','APPROXIMATE_NDV_ALGORITHM','ADAPTIVE SAMPLING');   --  values ('REPEAT' OR 'HYPERLOGLOG' or 'ADAPTIVE SAMPLING')
+ 
+exec dbms_stats.set_table_prefs('&Owner','&Tablename', 'STALE_PERCENT','5');   --  %(Any Number) of datachange
+ 
+
+ exec dbms_stats.set_global_prefs('INCREMENTAL_STALENESS', 'USE_STALE_PERCENT')
+ 
+ After 12g upgrade
+ ++++++++++++++++++++
+ Option : 1
+ You have some very large partitioned tables. They are using old-style synopses and you want to gradually replace the old with the new.
+ If you have a window of time to completely re-gather statistics for partitioned tables, then this is the recommended approach.
+ 
+ EXEC DBMS_STATS.SET_TABLE_PREFS(<table_owner>, <table_name>,'APPROXIMATE_NDV_ALGORITHM','HYPERLOGLOG')
+ 
+ Option : 2
+ You have some very large partitioned tables. They are using old-style synopses and you want to gradually replace the old with the new.
+ EXEC DBMS_STATS.SET_TABLE_PREFS( <table_owner>, <table_name>,'APPROXIMATE_NDV_ALGORITHM','HYPERLOGLOG') ;
+                exec dbms_stats.set_table_prefs('&Owner','&Tablename','INCREMENTAL_STALENESS',NULL);
+                exec dbms_stats.set_table_prefs('&Owner','&Tablename','INCREMENTAL_STALENESS','ALLOW_MIXED_FORMAT');
+                
+  option 3 : You want tables using old-style synopses to continue to use them.
+     NO action needed 
+     
+ Option 4 : Newly created incrementally-managed tables will use new-style synopses. Incrementally-managed tables without synopses will use new-style when statistics are gathered.
+ 
+ exec  dbms_stats.set_table_prefs('&Owner','&Tablename','APPROXIMATE_NDV_ALGORITHM','HYPERLOGLOG'); 
+  
+ Option 5  : 
+ Initially, you want to continue to use old-format synopses for all tables.
+
+We recommend that you use the new-style synopses, but can choose to use them later on if you prefer.
+
+EXEC DBMS_STATS.SET_TABLE_PREFS(<table_owner>,'<table-name>','APPROXIMATE_NDV_ALGORITHM', 'ADAPTIVE SAMPLING')
