@@ -1,0 +1,132 @@
+
+
+WORKLOAD REPOSITORY SQL Report
+
+Snapshot Period Summary
+
+DB Name         DB Id    Instance     Inst Num Startup Time    Release     RAC
+------------ ----------- ------------ -------- --------------- ----------- ---
+BVMQA         3925170746 bvmqa1              1 30-Apr-17 03:36 12.1.0.2.0  YES
+
+              Snap Id      Snap Time      Sessions Curs/Sess
+            --------- ------------------- -------- ---------
+Begin Snap:    137861 04-May-17 03:00:08       644       4.4
+  End Snap:    137886 04-May-17 15:30:30       981       4.1
+   Elapsed:              750.37 (mins)
+   DB Time:           23,116.86 (mins)
+
+SQL Summary                        DB/Inst: BVMQA/bvmqa1  Snaps: 137861-137886
+
+                Elapsed
+   SQL Id      Time (ms)
+------------- ----------
+02fmgrckjrht7 3.7787E+08
+Module: InitialiseBidCache
+ getIsinToInstrumentSetMapping
+select a.isin,a.instrumentId,a.instrumentsetid,a.ccy,a.freq,bsm.instrumentsetid
+as governmentsetid,bsm.frequency from (select i.pkey as instrumentId, ids.idva
+lue as isin,ism.instrumentsetid,b.principalccy as ccy, case s.freq when '12M'
+then 1 when '6M' then 2 when '4M' then 3 when '3M' then 4 when '2M' then 6
+
+          -------------------------------------------------------------
+
+SQL ID: 02fmgrckjrht7              DB/Inst: BVMQA/bvmqa1  Snaps: 137861-137886
+-> 1st Capture and Last Capture Snap IDs
+   refer to Snapshot IDs witin the snapshot range
+-> select a.isin,a.instrumentId,a.instrumentsetid,a.ccy,a.freq,bsm.instru...
+
+    Plan Hash           Total Elapsed                 1st Capture   Last Capture
+#   Value                    Time(ms)    Executions       Snap ID        Snap ID
+--- ---------------- ---------------- ------------- ------------- --------------
+1   3475858507            377,865,765           176        137863         137886
+          -------------------------------------------------------------
+
+
+Plan 1(PHV: 3475858507)
+-----------------------
+
+Plan Statistics                    DB/Inst: BVMQA/bvmqa1  Snaps: 137861-137886
+-> % Total DB Time is the Elapsed Time of the SQL statement divided
+   into the Total Database Time multiplied by 100
+
+Stat Name                                Statement   Per Execution % Snap
+---------------------------------------- ---------- -------------- -------
+Elapsed Time (ms)                        3.7787E+08    2,146,964.6    27.2
+CPU Time (ms)                            2.0033E+07      113,825.4     9.7
+Executions                                      176            N/A     N/A
+Buffer Gets                              2.8068E+08    1,594,744.9     2.2
+Disk Reads                               1.0940E+08      621,585.2    26.0
+Parse Calls                                     718            4.1     0.0
+Rows                                     1.5940E+07       90,568.8     N/A
+User I/O Wait Time (ms)                  1.9343E+07            N/A     N/A
+Cluster Wait Time (ms)                   8.4229E+07            N/A     N/A
+Application Wait Time (ms)                   21,121            N/A     N/A
+Concurrency Wait Time (ms)               1.2077E+08            N/A     N/A
+Invalidations                                     0            N/A     N/A
+Version Count                                    40            N/A     N/A
+Sharable Mem(KB)                              3,604            N/A     N/A
+          -------------------------------------------------------------
+
+Execution Plan
+------------------------------------------------------------------------------------------------------------------------
+| Id  | Operation                           | Name                       | Rows  | Bytes | Cost (%CPU)| Time     |    TQ
+------------------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                            |       |       | 92582 (100)|          |
+|   1 |  PX COORDINATOR                     |                            |       |       |            |          |
+|   2 |   PX SEND QC (RANDOM)               | :TQ10004                   | 35351 |  4867K| 92582   (2)| 00:00:04 |  Q1,0
+|   3 |    NESTED LOOPS OUTER               |                            | 35351 |  4867K| 92582   (2)| 00:00:04 |  Q1,0
+|   4 |     HASH JOIN                       |                            | 35351 |  3970K| 74895   (3)| 00:00:03 |  Q1,0
+|   5 |      PX RECEIVE                     |                            | 35351 |  3624K| 29805   (2)| 00:00:02 |  Q1,0
+|   6 |       PX SEND BROADCAST             | :TQ10003                   | 35351 |  3624K| 29805   (2)| 00:00:02 |  Q1,0
+|   7 |        HASH JOIN                    |                            | 35351 |  3624K| 29805   (2)| 00:00:02 |  Q1,0
+|   8 |         PX RECEIVE                  |                            | 35351 |  3279K| 27898   (2)| 00:00:02 |  Q1,0
+|   9 |          PX SEND BROADCAST          | :TQ10002                   | 35351 |  3279K| 27898   (2)| 00:00:02 |  Q1,0
+|  10 |           HASH JOIN BUFFERED        |                            | 35351 |  3279K| 27898   (2)| 00:00:02 |  Q1,0
+|  11 |            TABLE ACCESS FULL        | INSTRUMENTSETMAPPING       |   100K|  3149K|   577   (2)| 00:00:01 |  Q1,0
+|  12 |            HASH JOIN                |                            |  1038K|    62M| 27318   (2)| 00:00:02 |  Q1,0
+|  13 |             PX BLOCK ITERATOR       |                            |  2667K|    50M|  7862   (2)| 00:00:01 |  Q1,0
+|  14 |              TABLE ACCESS FULL      | BOND_FLOWS                 |  2667K|    50M|  7862   (2)| 00:00:01 |  Q1,0
+|  15 |             PX RECEIVE              |                            |  1153K|    47M| 19442   (2)| 00:00:01 |  Q1,0
+|  16 |              PX SEND BROADCAST      | :TQ10001                   |  1153K|    47M| 19442   (2)| 00:00:01 |  Q1,0
+|  17 |               HASH JOIN             |                            |  1153K|    47M| 19442   (2)| 00:00:01 |  Q1,0
+|  18 |                PX RECEIVE           |                            |  1153K|    27M| 16739   (2)| 00:00:01 |  Q1,0
+|  19 |                 PX SEND BROADCAST   | :TQ10000                   |  1153K|    27M| 16739   (2)| 00:00:01 |  Q1,0
+|  20 |                  PX BLOCK ITERATOR  |                            |  1153K|    27M| 16739   (2)| 00:00:01 |  Q1,0
+|  21 |                   TABLE ACCESS FULL | BOND_IDS                   |  1153K|    27M| 16739   (2)| 00:00:01 |  Q1,0
+|  22 |                PX BLOCK ITERATOR    |                            |  2961K|    50M|  2687   (4)| 00:00:01 |  Q1,0
+|  23 |                 INDEX FAST FULL SCAN| INST_FI_CUR_PKEY_IDS_CCY   |  2961K|    50M|  2687   (4)| 00:00:01 |  Q1,0
+|  24 |         PX BLOCK ITERATOR           |                            |  5303K|    50M|  1888   (2)| 00:00:01 |  Q1,0
+|  25 |          INDEX FAST FULL SCAN       | BOND_INST_INST_PRINCCY_IDX |  5303K|    50M|  1888   (2)| 00:00:01 |  Q1,0
+|  26 |      PX BLOCK ITERATOR              |                            |    89M|   851M| 44793   (2)| 00:00:02 |  Q1,0
+|  27 |       INDEX FAST FULL SCAN          | BOND_SCH_PKEY_FREQ_IDX     |    89M|   851M| 44793   (2)| 00:00:02 |  Q1,0
+|  28 |     VIEW                            | VW_LAT_29CAF5C7            |     1 |    26 |            |          |  Q1,0
+|  29 |      TABLE ACCESS FULL              | BENCHMARK_SET_MAPPING      |     1 |    28 |     2   (0)| 00:00:01 |  Q1,0
+------------------------------------------------------------------------------------------------------------------------
+
+Note
+-----
+   - SQL patch "PATCH13831" used for this statement
+
+
+
+Full SQL Text
+
+SQL ID       SQL Text
+------------ -----------------------------------------------------------------
+02fmgrckjrht select a.isin, a.instrumentId, a.instrumentsetid, a.ccy, a.freq,
+             bsm.instrumentsetid as governmentsetid, bsm.frequency from (selec
+             t i.pkey as instrumentId, ids.idvalue as isin, ism.instrumentseti
+             d, b.principalccy as ccy, case s.freq when '12M' then 1 when '6M'
+              then 2 when '4M' then 3 when '3M' then 4 when '2M' then 6 when '
+             1M' then 12 end as freq from instrumentsetmapping ism inner join
+             instruments_fi i on i.pkey=ism.instrument inner join bond_ids ids
+              on i.ids = ids.idset and ids.idtype = 'ISIN' inner join bond_ins
+             truments b on b.instrument = i.pkey and i.ccy = b.principalccy in
+             ner join bond_flows f on f.instrument = i.pkey and f.ccy = i.ccy
+             and f.leg = 1 inner join bond_schedules s on f.schedule = s.pkey
+             where i.iscurrent = 'Y' and ism.validfrom<=:1 and (ism.validto is
+              null or ism.validto>:2 )) a left outer join benchmark_set_mappin
+             g bsm on bsm.frequency in (a.freq, 0) and bsm.currency=a.ccy and
+             bsm.validfrom<=:3 and (bsm.validto is null or bsm.validto>:4 )
+
+

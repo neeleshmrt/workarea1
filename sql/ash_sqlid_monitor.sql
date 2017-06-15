@@ -1,0 +1,32 @@
+set lines 200 pagesize 20000
+ select 
+ USERNAME, 
+-- MODULE, 
+-- ACTION, 
+-- SERVICE_NAME, 
+-- CLIENT_IDENTIFIER, 
+-- CLIENT_INFO, 
+-- PROGRAM, 
+ SID, 
+ SESSION_SERIAL#, 
+ SQL_ID, 
+ substr(SQL_TEXT,1,40) sqltext, 
+ SQL_PLAN_HASH_VALUE, 
+ ELAPSED_TIME, 
+ QUEUING_TIME, 
+ CPU_TIME, 
+ FETCHES, 
+ BUFFER_GETS, 
+ DISK_READS, 
+ APPLICATION_WAIT_TIME, 
+ CONCURRENCY_WAIT_TIME, 
+ CLUSTER_WAIT_TIME, 
+ USER_IO_WAIT_TIME, 
+ IS_ADAPTIVE_PLAN, 
+ IS_FINAL_PLAN 
+from gv$sql_monitor 
+where 
+--sql_id='&sql_id'
+sid=&sid
+; 
+
