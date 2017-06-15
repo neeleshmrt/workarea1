@@ -1,0 +1,121 @@
+echo "enter the begin date mm/dd/yy format"
+read begin_date
+echo "enter the begin time hh24:mi format"
+read begin_time
+echo "enter the end date mm/dd/yy format"
+read end_date
+echo "enter the end time hh24:mi format"
+read end_time
+echo "enter the interval to extract awr report 1 means 15 min 2-> 30 min 3->45 min 4-> 1 hour etc.."
+read inval
+
+ORACLE_BASE=/opt/app/oracle
+#ORACLE_HOME=/opt/app/oracle/product/11.1.0.6
+ORACLE_HOME=/opt/app/oracle/product/11.2.0.1
+ORACLE_SID=$1
+ORACLE_OWNER=oracle
+ORACLE_TERM=xterm
+ORACLE_DOC=$ORACLE_HOME/doc
+ORA_NLS33=$ORACLE_HOME/ocommon/nls/admin/data
+
+JAVA_HOME=/usr/local/java
+CLASSPATH=$JAVA_HOME/lib/classes.zip
+PATH=/bin:/sbin:/usr/sbin:$HOME/bin:$ORACLE_HOME/bin:/usr/bin:$JAVA_HOME/bin:/opt/app/oracle/OPatch:$ORACLE_HOME/Apache/Apache/bin:$HOME/scripts:$HOME/DBA/SHOW
+CLASSPATH=$ORACLE_HOME/jre:$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib:$ORACLE_HOME/network/jlib
+#TNS_ADMIN=$ORACLE_HOME/network/admin
+TNS_ADMIN=$ORACLE_HOME/network/admin
+
+LD_ASSUME_KERNEL=2.4.21
+THREADS_FLAG=native
+
+export ORACLE_BASE ORACLE_HOME ORACLE_SID ORACLE_TERM ORACLE_DOC ORA_NLS33
+export ADMIN JAVA_HOME CLASSPATH DISPLAY PATH LD_LIBRARY_PATH CLASSPATH TNS_ADMIN
+export LD_ASSUME_KERNEL THREADS_FLAG
+
+export SQLPATH=/usr/local/sql:${HOME}/sql
+
+
+if [ $# -lt 1 ]; then
+echo "$0 <SID>"
+exit
+fi
+
+#MAIL_LIST="pareshr@amdocs.com,biancai@amdocs.com"
+
+MAIL_LIST="qpassdbateam@amdocs.com"
+
+
+cd ~oracle
+source .bash_profile
+SID=$1
+mkdir -p /tmp/awr/${SID}
+cd /tmp/awr/${SID}
+
+bsnap=/tmp/bsnap.out
+
+sqlplus -s system/pvcpipe@$SID > ${bsnap} << EOF
+set echo off heading off
+
+select 'Begin_Snap_Id='||min(snap_id)
+from dba_hist_snapshot
+where trim(to_char(end_interval_time,'HH24:MI')) >= '${begin_time}'
+and
+trim(to_char(end_interval_time, 'mm/dd/yy'))='${begin_date}';
+
+exit;
+EOF
+
+esnap=/tmp/esnap.out
+
+sqlplus -s system/pvcpipe@$SID > ${esnap} <<EOF
+set echo off heading off
+select 'End_Snap_Id='||max(snap_id)
+from dba_hist_snapshot
+where trim(to_char(end_interval_time,'HH24:MI')) <= '${end_time}'
+and
+trim(to_char(end_interval_time, 'mm/dd/yy'))= '${end_date}';
+
+
+exit;
+EOF
+
+
+bsnapid=`cat ${bsnap} |grep Begin_Snap_Id |awk -F= '{print $2}'`
+esnapid=`cat ${esnap} |grep End_Snap_Id |awk -F= '{print $2}'`
+
+echo $bsnapid
+echo $esnapid
+
+i=$bsnapid
+j=$bsnapid
+
+
+while [ $j -lt $esnapid ]
+do
+j=`expr $i + ${inval}`
+echo $i $j
+sqlplus -s system/pvcpipe@$SID << EOF
+define report_type='html'
+define num_days=1
+define begin_snap=${i}
+define end_snap=${j}
+define report_name=${i}_AWR.html
+@?/rdbms/admin/awrrpt.sql
+exit
+EOF
+i=`expr $i + ${inval}`
+done
+
+
+#gzip -f ${report_name}*.html
+#gzip -f ${report_name}*.text
+#tar -cvzf ${report_name}.tar.gz ${report_name}*.html ${report_name}*.text
+
+#NOW=`date +%F-%T`
+#awrrpt=${report_name}.html.gz
+#awrrpt1=${report_name}.tar.gz
+#uuencode $awrrpt $awrrpt | mail -s "awr report ${awrrpt} of ${SID} at ${NOW}"   pareshr@amdocs.com -c ${MAIL_LIST}
+#uuencode ${report_name}.html.gz ${report_name}.html.gz | mail -s "awr report ${awrrpt} of ${SID} at ${NOW}"   ${MAIL_LIST}
+#uuencode $awrrpt1 $awrrpt1 | mail -s "awr report ${awrrpt} of ${SID} at ${NOW}"   ${MAIL_LIST}
+
+

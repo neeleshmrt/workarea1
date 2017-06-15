@@ -1,0 +1,2 @@
+crsctl status res |grep -v "^$"|awk -F "=" 'BEGIN {print " "} {printf("%s",NR%4 ? $2"|" : $2"\n")}'|sed -e 's/  *, /,/g' -e 's/, /,/g'|\
+awk -F "|" 'BEGIN { printf "%-40s%-35s%-20s%-50s\n","Resource Name","Resource Type","Target ","State" }{ split ($3,trg,",") split ($4,st,",")}{for (i in trg) {printf "%-40s%-35s%-20s%-50s\n",$1,$2,trg[i],st[i]}}'
