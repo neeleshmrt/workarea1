@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 rel. 3 (http://www.altova.com) by ChA (Trivadis AG) -->
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by Meister Peter (Trivadis) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<xs:element name="tvdxtat">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="header">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="version" type="xs:string"/>
+							<xs:element name="author">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="name" type="xs:string"/>
+										<xs:element name="email" type="xs:string"/>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="copyright" type="xs:string"/>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="tracefiles" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="tracefile" maxOccurs="unbounded" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="database" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="line" maxOccurs="unbounded" type="xs:string"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="period" type="period" minOccurs="0"/>
+				<xs:element name="transactions">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="commit" type="xs:nonNegativeInteger"/>
+							<xs:element name="rollback" type="xs:nonNegativeInteger"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="profile">
+					<xs:complexType>
+						<xs:complexContent>
+							<xs:extension base="profile">
+								<xs:attribute name="total_elapsed" type="xs:double" use="required"/>
+							</xs:extension>
+						</xs:complexContent>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="cursors" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="cursor" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="container_id" type="xs:string" minOccurs="0"/>
+										<xs:element name="session_id" type="xs:string" minOccurs="0"/>
+										<xs:element name="client_id" type="xs:string" minOccurs="0"/>
+										<xs:element name="client_driver" type="xs:string" minOccurs="0"/>
+										<xs:element name="service_name" type="xs:string" minOccurs="0"/>
+										<xs:element name="module_name" type="xs:string" minOccurs="0"/>
+										<xs:element name="action_name" type="xs:string" minOccurs="0"/>
+										<xs:element name="sql" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="line" type="xs:string" maxOccurs="unbounded"/>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="binds" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="bind_batch" minOccurs="0" maxOccurs="unbounded">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="bind_set" minOccurs="0" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:sequence>
+																			<xs:element name="bind" minOccurs="0" maxOccurs="unbounded">
+																				<xs:complexType>
+																					<xs:simpleContent>
+																						<xs:extension base="xs:string">
+																							<xs:attribute name="nr" type="xs:nonNegativeInteger" use="required"/>
+																							<xs:attribute name="datatype" type="xs:string" use="required"/>
+																						</xs:extension>
+																					</xs:simpleContent>
+																				</xs:complexType>
+																			</xs:element>
+																		</xs:sequence>
+																		<xs:attribute name="nr" type="xs:nonNegativeInteger" use="required"/>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+															<xs:attribute name="nr" type="xs:nonNegativeInteger" use="required"/>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="count" type="xs:nonNegativeInteger" use="required"/>
+												<xs:attribute name="limit" type="xs:nonNegativeInteger" use="optional"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="execution_plans" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="execution_plan" minOccurs="0" maxOccurs="unbounded">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="line" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:simpleContent>
+																			<xs:extension base="xs:string">
+																				<xs:attribute name="id" type="xs:nonNegativeInteger" use="required"/>
+																				<xs:attribute name="pid" type="xs:nonNegativeInteger" use="required"/>
+																				<xs:attribute name="level" type="xs:nonNegativeInteger" use="required"/>
+																				<xs:attribute name="rows" type="xs:nonNegativeInteger" use="required"/>
+																				<xs:attribute name="elapsed" type="xs:integer"/>
+																				<xs:attribute name="cum_elapsed" type="xs:nonNegativeInteger"/>
+																				<xs:attribute name="pio" type="xs:integer"/>
+																				<xs:attribute name="cum_pio" type="xs:nonNegativeInteger"/>
+																				<xs:attribute name="lio" type="xs:integer"/>
+																				<xs:attribute name="cum_lio" type="xs:nonNegativeInteger"/>
+																			</xs:extension>
+																		</xs:simpleContent>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+															<xs:attribute name="incomplete" type="xs:boolean" use="required"/>
+															<xs:attribute name="goal" type="xs:string" use="required"/>
+															<xs:attribute name="hash_value" type="xs:nonNegativeInteger"/>
+															<xs:attribute name="executions" type="xs:nonNegativeInteger" use="required"/>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="cumulated_statistics" type="statistics" minOccurs="0"/>
+										<xs:element name="current_statistics" type="statistics" minOccurs="0"/>
+										<xs:element name="profile" minOccurs="0">
+											<xs:complexType>
+												<xs:complexContent>
+													<xs:extension base="profile">
+														<xs:attribute name="total_elapsed" type="xs:double" use="required"/>
+													</xs:extension>
+												</xs:complexContent>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="children" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="cursor" maxOccurs="unbounded">
+														<xs:complexType>
+															<xs:attribute name="id" type="xs:nonNegativeInteger" use="required"/>
+															<xs:attribute name="type" type="xs:string" use="required"/>
+															<xs:attribute name="depth" type="xs:nonNegativeInteger" use="required"/>
+															<xs:attribute name="uid" type="xs:string" use="required"/>
+															<xs:attribute name="count" type="xs:long" use="required"/>
+															<xs:attribute name="elapsed" type="xs:double" use="required"/>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="count" type="xs:nonNegativeInteger" use="required"/>
+												<xs:attribute name="elapsed" type="xs:nonNegativeInteger" use="required"/>
+												<xs:attribute name="limit" type="xs:nonNegativeInteger" use="optional"/>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="errors" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="error" type="xs:string" maxOccurs="unbounded"/>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="id" type="xs:nonNegativeInteger" use="required"/>
+									<xs:attribute name="hash_value" type="xs:nonNegativeInteger" use="optional"/>
+									<xs:attribute name="sql_id" type="xs:string" use="optional"/>
+									<xs:attribute name="depth" type="xs:nonNegativeInteger" use="optional"/>
+									<xs:attribute name="uid" type="xs:string" use="optional"/>
+									<xs:attribute name="type" type="xs:string" use="optional"/>
+									<xs:attribute name="parent" type="xs:nonNegativeInteger" use="optional"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="statistics">
+		<xs:sequence>
+			<xs:element name="statistic" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attribute name="call" type="xs:string" use="required"/>
+					<xs:attribute name="misses" type="xs:double" use="required"/>
+					<xs:attribute name="count" type="xs:double" use="required"/>
+					<xs:attribute name="cpu" type="xs:double" use="required"/>
+					<xs:attribute name="elapsed" type="xs:double" use="required"/>
+					<xs:attribute name="pio" type="xs:double" use="required"/>
+					<xs:attribute name="lio" type="xs:double" use="required"/>
+					<xs:attribute name="consistent" type="xs:double" use="required"/>
+					<xs:attribute name="current" type="xs:double" use="required"/>
+					<xs:attribute name="rows" type="xs:double" use="required"/>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="profile">
+		<xs:sequence>
+			<xs:element name="event" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence minOccurs="0">
+						<xs:element name="histogram" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="bucket" maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:attribute name="range" type="xs:string" use="required"/>
+											<xs:attribute name="elapsed" type="xs:integer" use="required"/>
+											<xs:attribute name="count" type="xs:nonNegativeInteger" use="required"/>
+											<xs:attribute name="blocks" type="xs:nonNegativeInteger" use="optional"/>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="distribution" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="bucket" maxOccurs="unbounded">
+										<xs:complexType>
+											<xs:attribute name="file" type="xs:string" use="optional"/>
+											<xs:attribute name="block" type="xs:nonNegativeInteger" use="optional"/>
+											<xs:attribute name="reason" type="xs:string" use="optional"/>
+											<xs:attribute name="count" type="xs:nonNegativeInteger" use="optional"/>
+											<xs:attribute name="blocks" type="xs:nonNegativeInteger" use="optional"/>
+											<xs:attribute name="elapsed" type="xs:integer" use="optional"/>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+								<xs:attribute name="count" type="xs:nonNegativeInteger" use="required"/>
+								<xs:attribute name="limit" type="xs:nonNegativeInteger" use="optional"/>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="contributors" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="contributors">
+										<xs:attribute name="count" type="xs:nonNegativeInteger" use="required"/>
+										<xs:attribute name="limit" type="xs:nonNegativeInteger" use="optional"/>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="name" type="xs:string" use="required"/>
+					<xs:attribute name="elapsed" type="xs:integer" use="required"/>
+					<xs:attribute name="count" type="xs:nonNegativeInteger" use="optional"/>
+					<xs:attribute name="blocks" type="xs:nonNegativeInteger" use="optional"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="contributors" minOccurs="0">
+				<xs:complexType>
+					<xs:complexContent>
+						<xs:extension base="contributors">
+							<xs:attribute name="count" type="xs:nonNegativeInteger" use="required"/>
+							<xs:attribute name="count_recursive" type="xs:nonNegativeInteger" use="required"/>
+							<xs:attribute name="limit" type="xs:nonNegativeInteger" use="optional"/>
+						</xs:extension>
+					</xs:complexContent>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="period">
+		<xs:sequence>
+			<xs:element name="begin" type="xs:string" minOccurs="0"/>
+			<xs:element name="end" type="xs:string" minOccurs="0"/>
+			<xs:element name="duration" type="xs:nonNegativeInteger" minOccurs="0"/>
+			<xs:element name="warning" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="contributors">
+		<xs:sequence>
+			<xs:element name="cursor" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:simpleContent>
+						<xs:extension base="xs:string">
+							<xs:attribute name="id" type="xs:nonNegativeInteger" use="required"/>
+							<xs:attribute name="type" type="xs:string" use="required"/>
+							<xs:attribute name="depth" type="xs:nonNegativeInteger" use="required"/>
+							<xs:attribute name="uid" type="xs:string" use="optional"/>
+							<xs:attribute name="count" type="xs:long" use="required"/>
+							<xs:attribute name="elapsed" type="xs:double" use="required"/>
+						</xs:extension>
+					</xs:simpleContent>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

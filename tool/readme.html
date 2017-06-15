@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+  body { background-color: rgb(233,233,233); }
+  h1 { color: black; font-family: helvetica; font-size: 20pt; font-weight: bold; }
+  h2 { color: black; font-family: helvetica; font-size: 16pt; font-weight: normal; }
+  h3 { color: black; font-family: helvetica; font-size: 14pt; font-weight: bold; }
+  p { color:black; font-family: helvetica; font-size: 14pt; font-weight: normal; }
+  pre { color:black; font-family: helvetica; font-size: 14pt; font-weight: normal; }
+  li { color:black; font-family: helvetica; font-size: 14pt; font-weight: normal; }
+  th { color: black; font-family: helvetica; font-size: 14pt; font-weight: normal; }
+  td { color: black; font-family: helvetica; font-size: 14pt; font-weight: normal; }
+</style>
+<title>Trivadis eXtended Tracefile Analysis Tool - README</title>
+</head>
+
+<body>
+<p><a href="http://www.trivadis.com/"><img src="images/trivadis.gif" border="0" alt="Trivadis makes IT easier"/></a></p>
+<table border="0" cellspacing="5" cellpadding="0">
+  <tr valign=top>
+    <td>TVD$XTAT&nbsp;&nbsp;&nbsp;</td>
+    <td>TriVaDis eXtended Tracefile Analysis Tool</td>
+  </tr>
+  <tr valign=top>
+    <td><p>Author</p></td>
+    <td><p>
+      Copyright 2000-2017 by <a href="mailto:christian.antognini@trivadis.com">Christian Antognini</a> 
+      <br><a href="http://www.trivadis.com">Trivadis AG</a>
+      <br>S&auml;gereistrasse 29
+      <br>CH-8152 Glattbrugg / Z&uuml;rich
+    </p></td>
+  </tr>
+  <tr valign=top>
+    <td><p>Date</p></td>
+    <td><p>1 March 2017</p></td>
+  </tr>
+  <tr valign=top>
+    <td><p>Version</p></td>
+    <td><p>4.0 Beta 11</p></td>
+  </tr>
+  <tr valign=top>
+    <td><p>Purpose</p></td>
+    <td>
+      <p>This REAME gives the following information about TVD$XTAT:<br/>
+      <a href="#Introduction">Introduction</a><br/>
+      <a href="#License">License and Distribution</a><br/>
+      <a href="#Requirements">Requirements</a><br/>
+      <a href="#Installation">Installation</a><br/>
+      <a href="#Utilization">Utilization</a><br/>
+      </p>
+    </td>
+  </tr>
+</table>
+
+<h1><a name=Introduction>Introduction</a></h1>
+
+<p>In late 1999, I had my first encounter with extended SQL trace, through the Oracle Support note <em>Interpreting Raw SQL_TRACE and
+ DBMS_SUPPORT.START_TRACE output</em> (39817.1). From the beginning, it was clear that the information it provided was essential for 
+ understanding what an application is doing when it's connected to Oracle Database. At the same time, I was very disappointed that no 
+ tool was available for analyzing extended SQL trace files for the purpose of leveraging their content. I should note that TKPROF at 
+ that time didn't provide information about wait events. After spending too much time manually extracting information from the raw 
+ trace files through command-line tools like awk, I decided to write my own analysis tool: TVD$XTAT.</p>
+
+<p>Currently, TKPROF provides information about wait events, but it still has five major problems that are addressed in TVD$XTAT:</p>
+<ul>
+  <li>As soon as the <em>sort</em> argument is specified, the relationship between SQL statements is lost.</li>
+  <li>Data is provided only in aggregated form. Consequently, useful information is lost.</li>
+  <li>No information about bind variables is provided.</li>
+  <li>Idle wait events (for example, <em>SQL*Net message from client</em>) taking place during the
+      execution of a SQL statement aren't accounted for in the elapsed time shown by TKPROF. As
+      a result, when SQL statements are sorted according to their elapsed time, the output might be
+      misleading or, in extreme cases, very time consuming if not nearly impossible to interpret.</li>
+  <li>When a trace file doesn't contain the text of a SQL statement (specifically, the text delimited
+      between the PARSING IN CURSOR and END OF STMT keywords), TKPROF doesn't report the
+      details about the SQL statement; it just accounts for the resource utilization in the summary at
+      the end of the output file. Note that one case in which the text of a SQL statement isn't stored
+      in the trace file is when SQL trace is activated after the execution has already been started.</li>
+</ul>
+
+<h1><a name="License"></a>License and Distribution</h1>
+
+<p><a href="doc/tvdxtat-license.html"><img border="0" width="10%" src="images/somerights20.gif" alt="some rights reserved"></a></p>
+
+<p>TVD$XTAT is free and licensed under a <a href="doc/tvdxtat-license.html">Creative Commons License</a>.</p>
+
+<p>This software is provided &quot;as is&quot; and any expressed or implied warranties,
+   including, but not limited to, the implied warranties of merchantability and
+   fitness  for a particular  purpose are  disclaimed. In no event shall  the
+   author  be liable for  any direct,
+   indirect, incidental, special,  exemplary, or consequential  damages (including, 
+   but not limited to, procurement  of substitute goods or services; loss
+   of use, data, or  profits; or business  interruption)  however caused and on
+   any  theory of liability,  whether  in contract,  strict liability,  or tort
+   (including  negligence or  otherwise) arising in  any way out of the  use of
+   this software, even if advised of the possibility of such damage.</p>
+
+<h1><a name="Requirements"></a>Requirements</h1>
+
+<p>
+  Java Runtime Environment 1.5.0 or newer.
+</p>
+
+<h1><a name=Installation>Installation</a></h1>
+
+<p>Here's how to install TVD$XTAT:</p>
+<ul>
+  <li>Download TVD$XTAT from <a href="http://top.antognini.ch">http://top.antognini.ch</a>.</li>
+  <li>Uncompress the distribution file into an empty directory of your choice.</li>
+  <li>In the shell script used to start TVD$XTAT (either <b style='font-family:"Courier New"'>
+      <a href="tvdxtat.cmd">tvdxtat.cmd</a></b> 
+      or <b style='font-family:"Courier New"'><a href="tvdxtat.sh">tvdxtat.sh</a></b>, depending
+      on your operating system), modify the variables <b style='font-family:"Courier New"'>java_home</b>
+      and <b style='font-family:"Courier New"'>tvdxtat_home</b>. The former references the directory where 
+      a Java Runtime Environment is installed. The latter references the directory 
+      where the distribution file was uncompressed.</li>
+  <li>Optionally, change the default value of the command-line arguments. To do that, you need to modify 
+      the file <b style='font-family:"Courier New"'><a href="config/tvdxtat.properties">tvdxtat.properties</a></b>, 
+      which is stored in the subdirectory config. By customizing the default configuration, you can avoid specifying 
+      all arguments every time you run TVD$XTAT.</li>
+  <li>Optionally, change the logging configuration. To do that, you have to modify the file 
+      <b style='font-family:"Courier New"'><a href="config/logging.properties">logging.properties</a></b>, 
+      which is stored in the directory config. Per default, TVD$XTAT shows errors and warnings. It isn’t 
+      usually necessary to change these default settings, however.</li>
+</ul>
+
+<h1><a name="Utilization"></a>Utilization</h1>
+
+<p>If you run TVD$XTAT without arguments, you get a complete list of the available arguments with a short description
+for each of them. Note that for every argument, there's a short representation (for example, -c) and a long
+representation (for example, --cleanup):</p>
+
+<pre>
+<b style='font-family:"Courier New"'>usage: tvdxtat [-c no|yes] [-f <int>] [-l <int>] [-r 7|8|9|10|11|12]
+               [-s no|yes] [-t &lt;template&gt;] [-w no|yes]
+               [-x severe|warning|info|fine|finer] -i &lt;input&gt; -o &lt;output&gt;
+ -c,--cleanup     remove temporary XML file (no|yes)
+ -f,--feedback    display progress every x lines (integer number &gt;= 0, no
+                  progress = 0)
+ -h,--help        display this help information and exit
+ -i,--input       input trace file name (valid extensions: trc|gz|zip)
+ -l,--limit       limit the size of lists (e.g. number of statements) in
+                  the output file (integer number &gt;= 0, unlimited = 0)
+ -o,--output      output file name (a temporary XML file with the same
+                  name but with the extension xml is also created)
+ -r,--release     major release of the database engine that generated the
+                  input trace file (7|8|9|10|11|12)
+ -s,--sys         report information about SYS recursive statements
+                  (no|yes)
+ -t,--template    name of the XSL template used to generate the output
+                  file (active|html|text)
+ -v,--version     print product version and exit
+ -w,--wait        report detailed information about wait events (no|yes)
+ -x,--logging     logging level (severe|warning|info|fine|finer)
+</b>
+</pre>
+
+<p>The function of each argument is as follows:</p>
+<ul>
+  <li><b style='font-family:"Courier New"'>input</b> specifies the name of the input file. The input file must
+      be either a trace file (extension.trc) or a compressed file (extension .gz or .zip) that contains one or 
+      several trace files. Note, however, that only a single trace file is extracted from .zip files.</li>
+  <li><b style='font-family:"Courier New"'>output</b> specifies the name of the output file. During processing, 
+      a temporary XML file is created with the same name as the output file but with the extension .xml. Be 
+      careful, if another file with the same name as the output file exists, it will be overwritten.</li>
+  <li><b style='font-family:"Courier New"'>cleanup</b> specifies whether the temporary XML file generated during 
+      processing is removed at the end. Generally, it should be set to yes. This argument is important only during 
+      the development phase to check intermediate results.</li>
+  <li><b style='font-family:"Courier New"'>feedback</b> specifies whether progress information is displayed. It 
+      is useful during the processing of very large trace files to know the current status of the analysis. The 
+      argument specifies the interval (number of lines) at which a new message will be generated. If it is set 
+      to 0, no progress information is displayed.</li>
+  <li><b style='font-family:"Courier New"'>help</b> specifies whether to display help information. It cannot be 
+      used along with other arguments.</li>
+  <li><b style='font-family:"Courier New"'>limit</b> sets the maximum number of elements present in lists (for 
+      example, the lists used for SQL statements, waits, and bind variables) available in the output file. If it 
+      is set to 0, there is no limit.</li>
+  <li><b style='font-family:"Courier New"'>release</b> specifies the major release number (that is, 7, 8, 9, 10, 
+      11 or 12) of the Oracle database engine that generated the input trace file.</li>
+  <li><b style='font-family:"Courier New"'>sys</b> specifies whether information about recursive SQL statements 
+      that are executed by the user SYS are available in the output file. It is commonly set to no.</li>
+  <li><b style='font-family:"Courier New"'>template</b> specifies the name of the XSL template used to generate 
+      the output file. By default, three templates are available: active.xsl, html.xsl and text.xsl. The first
+      generates a HTML output file that requires JavaScript/jQuery; the second generates a static HTML output file;
+      the third generates a text output file. The default templates can be modified and new templates can be written as well. 
+      In this way, it is possible to fully customize the output file. The templates must be stored in the subdirectory templates.</li>
+  <li><b style='font-family:"Courier New"'>version</b> specifies whether to display the version number of TVD$XTAT. 
+      It cannot be used along with other arguments.</li>
+  <li><b style='font-family:"Courier New"'>wait</b> specifies whether detailed information for wait events is shown. 
+      Enabling this feature (that is, setting this argument to yes) might have a significant overhead during
+      processing. Therefore, I suggest you set it initially to no. Afterward, if the basic wait information
+      is not enough, you can run another analysis with it set to yes.</li>
+  <li><b style='font-family:"Courier New"'>logging</b> specifies which messages are shown by the logging framework.</li>
+</ul>
+
+<p>My book, <a href="http://top.antognini.ch">Troubleshooting Oracle Performance</a>, fully describes how
+   to leverage the output generated by TVD$XTAT to identify performance problems.</p>
+
+</body>
+
+</html>
